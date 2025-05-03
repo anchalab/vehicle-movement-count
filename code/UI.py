@@ -58,42 +58,41 @@ app_ui = ui.page_fluid(
                 ),
                 width=1/2
             ),
-            
-            ui.card(
-                ui.card_header("Detailed Results"),
-                ui.layout_column_wrap(
-                    ui.card(
-                        ui.card_header("Gate Direction Mapping"),
-                        ui.div(
-                            ui.output_ui("dropdown_sets"),
-                            # Recreated the button layout to align with dropdowns
-                            ui.row(
-                                ui.column(6, 
-                                    ui.input_action_button("reset_mapping", "Reset Mapping", 
-                                                         class_="btn-sm btn-outline-danger")
-                                ),
-                                ui.column(6, 
-                                    ui.input_action_button("submit", "Submit Mapping", 
-                                                         class_="btn-sm btn-outline-primary")
-                                ),
-                                class_="mt-1"
-                            )
-                        ),
-                        
-                    ),
-                    
-                    ui.card(
-                        ui.card_header("Mapping Results"),
-                        ui.output_table("mapping_result_table"),
-                        ui.div(
-                            ui.output_ui("export_csv_div"),
-                            class_="p-30"
+        ),  
+
+        ui.card(
+            ui.card_header("Detailed Results"),
+            ui.layout_column_wrap(
+                ui.card(
+                    ui.card_header("Gate Direction Mapping"),
+                    ui.div(
+                        ui.output_ui("dropdown_sets"),
+                        # Recreated the button layout to align with dropdowns
+                        ui.row(
+                            ui.column(6, 
+                                ui.input_action_button("reset_mapping", "Reset Mapping", 
+                                                        class_="btn-sm btn-outline-danger")
+                            ),
+                            ui.column(6, 
+                                ui.input_action_button("submit", "Submit Mapping", 
+                                                        class_="btn-sm btn-outline-primary")
+                            ),
+                            class_="mt-1"
                         )
-                    ),
-                    width=1/2
-                ),    
-            )
-        )
+                    ),        
+                ),
+                
+                ui.card(
+                    ui.card_header("Mapping Results"),
+                    ui.output_table("mapping_result_table"),
+                    ui.div(
+                        ui.output_ui("export_csv_div"),
+                        class_="p-30"
+                    )
+                ),
+                width=1/2
+            ),    
+        )    
     )
 )
 
