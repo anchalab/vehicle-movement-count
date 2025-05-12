@@ -409,5 +409,5 @@ def server(input, output, session):
 app = App(app_ui, server)
 
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8003)
+# if __name__ == "__main__":
+#     app.run(host="0.0.0.0", port=8003)
