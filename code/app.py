@@ -9,7 +9,7 @@ import io
 import base64
 import tempfile
 import os
-import vehicle-movement-analysis  # Import the gates analysis module
+import vehicle_movement_analysis  # Import the gate analysis module
 
 app_ui = ui.page_fluid(
     ui.h1("Intersection Traffic Analysis Dashboard", class_="text-center"),
@@ -24,7 +24,7 @@ app_ui = ui.page_fluid(
                 {"two_way": "2-Way Mid-Block (k=2)",
                 "t_intersection": "T-Intersection (k=3)", 
                 "four_way": "4-Way Intersection (k=4)"},
-                selected="four_way"
+                selected="t_intersection"
             ),
             
             
@@ -41,7 +41,7 @@ app_ui = ui.page_fluid(
             
             ui.card(
                 ui.card_header("Help"),
-                "CSV should contain vehicle movement data with columns 'frame','vehicle_id','vehicle_type','a','b','c','X1','Y1','X2','Y2' in order for trajectories start and end points (Here a, b, c can be anything)."
+                "CSV should contain vehicle movement data with columns 'frame', 'vehicle_id', 'vehicle_type', 'a', 'b', 'c', 'X1', 'Y1', 'X2', 'Y2' (Here, X1, Y1, X2, Y2 are the coordinates of the bounding boxes and a, b, c can be any test fields)."
             ),
             width=300
         ),
@@ -157,7 +157,7 @@ def server(input, output, session):
                 cluster_count = 3 if input.intersection_type() == "t_intersection" else 2 if input.intersection_type() == "two_way" else 4
     
                 # Call analyze and retrieve image + data
-                image_base64, movement_df, output = TrajectoryGatesCombined.analyze(
+                image_base64, movement_df, output = vehicle_movement_analysis.analyze(
                     temp_csv_path, temp_img_path, cluster_count
                 )
                 # Save results to reactive values
@@ -195,7 +195,7 @@ def server(input, output, session):
     @render.ui
     def movement_table():
         if movement_counts() is None:
-            return None
+            return ui.p("Run analysis to see movement count for each approach")
         
         return ui.tags.table(
             ui.tags.thead(
@@ -217,26 +217,26 @@ def server(input, output, session):
             )
         )
     
-    # Output: Cluster statistics
-    @output
-    @render.plot
-    def cluster_stats():
-        if processed_data() is None:
-            return None
+    # # Output: Cluster statistics
+    # @output
+    # @render.plot
+    # def cluster_stats():
+    #     if processed_data() is None:
+    #         return None
         
-        data = processed_data()
+    #     data = processed_data()
         
-        # Create a summary of vehicles per cluster
-        cluster_summary = data.groupby('start_cluster').size().reset_index(name='count')
-        cluster_summary['cluster'] = 'Cluster ' + (cluster_summary['start_cluster'] + 1).astype(str)
+    #     # Create a summary of vehicles per cluster
+    #     cluster_summary = data.groupby('start_cluster').size().reset_index(name='count')
+    #     cluster_summary['cluster'] = 'Cluster ' + (cluster_summary['start_cluster'] + 1).astype(str)
         
-        fig, ax = plt.subplots(figsize=(10, 6))
-        ax.bar(cluster_summary['cluster'], cluster_summary['count'], color='skyblue')
-        ax.set_title('Vehicles per Cluster')
-        ax.set_xlabel('Cluster')
-        ax.set_ylabel('Count')
+    #     fig, ax = plt.subplots(figsize=(10, 6))
+    #     ax.bar(cluster_summary['cluster'], cluster_summary['count'], color='skyblue')
+    #     ax.set_title('Vehicles per Cluster')
+    #     ax.set_xlabel('Cluster')
+    #     ax.set_ylabel('Count')
         
-        return fig
+    #     return fig
     
     @reactive.effect
     @reactive.event(input.reset_mapping)
@@ -365,7 +365,7 @@ def server(input, output, session):
     @render.ui
     def mapping_result_table():
         if mapping_result() is None:
-            return None
+            return ui.p("Run analysis and submit Gate to Direction Mapping to see directional movement count")
         
         return ui.tags.table(
             ui.tags.thead(
