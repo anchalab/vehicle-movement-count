@@ -13,7 +13,7 @@ import vehicle_movement_analysis  # Import the gate analysis module
 
 app_ui = ui.page_fluid(
     ui.h1("Intersection Traffic Analysis Dashboard", class_="text-center"),
-    ui.p("Analyze vehicle movement patterns at intersections using k-means clustering", class_="text-center"),
+    ui.p("Analyze vehicle movement patterns at intersections", class_="text-center"),
     
     ui.layout_sidebar(
         ui.sidebar(
