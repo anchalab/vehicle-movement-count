@@ -4,4 +4,6 @@ numpy
 matplotlib
 scikit-learn
 Pillow
-TrajectoryGatesCombined @ file:./TrajectoryGatesCombined
+scipy
+opencv-python
+numpy

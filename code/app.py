@@ -9,7 +9,7 @@ import io
 import base64
 import tempfile
 import os
-import TrajectoryGatesCombined  # Import the gates module
+import vehicle-movement-analysis  # Import the gates analysis module
 
 app_ui = ui.page_fluid(
     ui.h1("Intersection Traffic Analysis Dashboard", class_="text-center"),
