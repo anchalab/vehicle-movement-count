@@ -21,8 +21,9 @@ app_ui = ui.page_fluid(
             ui.input_radio_buttons(
                 "intersection_type",
                 "Intersection Type:",
-                {"t_intersection": "T-Intersection (k=3)", 
-                 "four_way": "4-Way Intersection (k=4)"},
+                {"two_way": "2-Way Mid-Block (k=2)",
+                "t_intersection": "T-Intersection (k=3)", 
+                "four_way": "4-Way Intersection (k=4)"},
                 selected="four_way"
             ),
             
@@ -30,17 +31,17 @@ app_ui = ui.page_fluid(
             ui.input_file("image_file", "Upload Intersection Image:", 
                          accept=[".jpg", ".jpeg", ".png"]),
             
-            ui.input_file("data_file", "Upload Vehicle Movement Data (CSV):", 
+            ui.input_file("data_file", "Upload Vehicle Movement Data (csv/txt):", 
                          accept=[".csv",".txt"]),
             
-            ui.input_checkbox("use_gates_algorithm", "Use Gates Algorithm", value=True),
+            # ui.input_checkbox("use_gates_algorithm", "Use Gates Algorithm", value=True),
             
             ui.input_action_button("analyze_btn", "Run Analysis", 
                                   class_="btn-primary w-100"),
             
             ui.card(
                 ui.card_header("Help"),
-                "CSV should contain vehicle movement data with x1, y1, x2, y2 columns for start and end coordinates."
+                "CSV should contain vehicle movement data with columns 'frame','vehicle_id','vehicle_type','a','b','c','X1','Y1','X2','Y2' in order for trajectories start and end points (Here a, b, c can be anything)."
             ),
             width=300
         ),
@@ -149,27 +150,26 @@ def server(input, output, session):
             temp_img.close()
             
             # Run gates analysis if checkbox is checked
-            if input.use_gates_algorithm():
-                try:
-                    
-                    # Determine k based on intersection type
-                    cluster_count = 3 if input.intersection_type() == "t_intersection" else 4
-                    # Call gates.analyze with the temp file paths
-                    # TrajectoryGatesCombined.analyze(temp_csv_path, temp_img_path, cluster_count)
-                    # Call analyze and retrieve image + data
-                    image_base64, movement_df, output = TrajectoryGatesCombined.analyze(
-                        temp_csv_path, temp_img_path, cluster_count
-                    )
-                    # Save results to reactive values
-                    processed_image.set(image_base64)
-                    movement_counts.set(movement_df)
-                    csv_output.set(output)
+            # if input.use_gates_algorithm():
+            try:
+                
+                # Determine k based on intersection type
+                cluster_count = 3 if input.intersection_type() == "t_intersection" else 2 if input.intersection_type() == "two_way" else 4
+    
+                # Call analyze and retrieve image + data
+                image_base64, movement_df, output = TrajectoryGatesCombined.analyze(
+                    temp_csv_path, temp_img_path, cluster_count
+                )
+                # Save results to reactive values
+                processed_image.set(image_base64)
+                movement_counts.set(movement_df)
+                csv_output.set(output)
 
-                except Exception as e:
-                    print(f"Error in gates algorithm: {e}")
-                    gates_transitions.set(pd.DataFrame({
-                        "Error": [f"Failed to run gates analysis: {str(e)}"]
-                    }))
+            except Exception as e:
+                print(f"Error in gates algorithm: {e}")
+                gates_transitions.set(pd.DataFrame({
+                    "Error": [f"Failed to run gates analysis: {str(e)}"]
+                }))
         
         finally:
             # Clean up temporary files
@@ -251,7 +251,7 @@ def server(input, output, session):
     # Update selected gates whenever any gate dropdown changes
     @reactive.effect
     def update_selected_gates():
-        num_gates = 3 if input.intersection_type() == "t_intersection" else 4
+        num_gates = 3 if input.intersection_type() == "t_intersection" else 2 if input.intersection_type() == "two_way" else 4
         gate_selection_map = {}
         direction_selection_map = {}
         
@@ -275,7 +275,7 @@ def server(input, output, session):
     @render.ui
     def dropdown_sets():
         # Create a set of dropdowns for each gate
-        num_gates = 3 if input.intersection_type() == "t_intersection" else 4
+        num_gates = 3 if input.intersection_type() == "t_intersection" else 2 if input.intersection_type() == "two_way" else 4
         gate_selection_map = selected_gates.get()
         direction_selection_map = selected_directions.get()
         dropdown_sets = []
@@ -336,8 +336,8 @@ def server(input, output, session):
             ui.notification_show("No movement data available to map", type="warning")
             return
         df = movement_counts.get().copy()
-        current_gates = 3 if input.intersection_type() == "t_intersection" else 4
-        
+        current_gates = 3 if input.intersection_type() == "t_intersection" else 2 if input.intersection_type() == "two_way" else 4
+    
         for i in range(1, current_gates + 1):
             gate_value = input[f"gate_{i}"]()
             direction_value = input[f"direction_{i}"]()
@@ -401,16 +401,6 @@ def server(input, output, session):
             )
         )if content_generated.get() else ui.div()
 
-    # @render.download(filename="sample_data.csv")
-    # def export_csv():
-    #     result = csv_output.get()
-    #     print(result.head(4))
-    #     # Create a BytesIO object for the CSV content
-    #     # buffer = io.StringIO()
-    #     # Write the dataframe to CSV
-    #     yield result.to_csv("abc.csv", index=False)
-    #     # Return the CSV content
-    #     # return buffer.getvalue()
     @render.download(filename="output_result.csv")
     def export_csv():
         result = dir_csv_output.get()

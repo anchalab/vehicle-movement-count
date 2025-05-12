@@ -17,7 +17,7 @@ from sklearn.preprocessing import StandardScaler
 def analyze(csv_file, image_path, cluster_count):
     column_names = ['frame','vehicle_id','vehicle_type','a','b','c','X1','Y1','X2','Y2',]
     df = pd.read_csv(csv_file, sep=' ', header=None, usecols = [0,1,2,3,4,5,6,7,8,9], names=column_names)
-
+    
     df['Center_X'] = (df['X1']+df['X2']) / 2
     df['Center_Y'] = (df['Y1']+df['Y2']) / 2
 
@@ -53,13 +53,14 @@ def analyze(csv_file, image_path, cluster_count):
     centroids = pd.DataFrame(kmeans.cluster_centers_, columns=['Center_X_norm', 'Center_Y_norm'])
 
     unique_clusters = df_combined['Cluster'].unique()
+
     # Create a dynamic mapping from cluster ID to gate name
     cluster_to_gate = {cluster_id: f'Gate {i+1}' for i, cluster_id in enumerate(unique_clusters)}
 
     # Assign the corresponding gate names to the 'Gate' column
     df_combined['Gate'] = df_combined['Cluster'].map(cluster_to_gate)
 
-    # Step 1: Group by 'Cluster_ID' and apply Convex Hull for each cluster
+    # Step 1: Group by 'Gate' (cluster) and apply Convex Hull for each cluster
     fig, ax = plt.subplots()
 
     for gate, group in df_combined.groupby('Gate'):
@@ -73,10 +74,8 @@ def analyze(csv_file, image_path, cluster_count):
             continue  # Convex Hull requires at least 3 points
         hull = ConvexHull(X_group)
         ax.scatter(group['Center_X'],group['Center_Y'], label=gate, s=10)
-        # print(hull.vertices)
-        # print(X_group[hull.vertices])
+        
         for simplex in hull.simplices:
-            # print(simplex)
             ax.plot(X_group[simplex, 0], X_group[simplex, 1], 'k-')
             
         # Compute an appropriate label position (e.g., centroid of the convex hull)
@@ -88,6 +87,7 @@ def analyze(csv_file, image_path, cluster_count):
                 fontsize=10, color='red', fontweight='bold', 
                 bbox=dict(facecolor='white', alpha=0.7, edgecolor='red'))
     ax.imshow(cv2.imread(image_path))
+
     # Add labels and legend
     ax.set_title("Convex Hulls for Each Cluster")
     ax.set_xlabel("Center_X")
@@ -121,7 +121,7 @@ def analyze(csv_file, image_path, cluster_count):
 
     df_count = df_wide[['InGate','OutGate']].value_counts().reset_index(name='Vehicle Count').reset_index(drop=True)
 
-    # output.to_csv("../output_40_1.csv",index=False)
+    # output.to_csv("../output.csv",index=False)
 
     return image_base64, df_count, output
 
