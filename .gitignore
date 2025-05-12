@@ -1,5 +1,6 @@
 Data/
 venv/
+test/
 *.csv
 # *.txt
 *.pdf
